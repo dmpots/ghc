@@ -51,7 +51,14 @@ extern __thread gc_thread* gct;
 // incorrect code for global register variables. If we are compiling
 // with a C compiler that uses an LLVM back end (clang or llvm-gcc) then we
 // use pthread_getspecific() to handle the thread local storage for gct.
-#define gct ((gc_thread *)(getThreadLocalVar(&gctKey)))
+#include <Task.h> // for gctKey declaration
+static gc_thread* __gct(void);
+static inline gc_thread* __gct(void) {
+  gc_thread *gct_tls;
+  __asm__("movq %%gs:0x60(,%[key],8),%[gct_tls]" : [gct_tls] "=r" (gct_tls) : [key] "r" (gctKey));
+  return gct_tls;
+}
+#define gct (__gct())
 #define DECLARE_GCT /* nothing */
 
 #elif defined(sparc_HOST_ARCH)
