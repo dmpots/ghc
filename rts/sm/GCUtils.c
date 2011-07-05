@@ -113,7 +113,7 @@ grab_local_todo_block (gen_workspace *ws)
 
 #if defined(THREADED_RTS)
 bdescr *
-steal_todo_block (nat g)
+steal_todo_block (DECLARE_GCT_PARAM(nat g))
 {
     nat n;
     bdescr *bd;
@@ -159,7 +159,7 @@ push_scanned_block (bdescr *bd, gen_workspace *ws)
 }
 
 StgPtr
-todo_block_full (nat size, gen_workspace *ws)
+todo_block_full (DECLARE_GCT_PARAM(nat size, gen_workspace *ws))
 {
     StgPtr p;
     bdescr *bd;
