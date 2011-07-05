@@ -15,14 +15,16 @@
 #define SM_MARKWEAK_H
 
 #include "BeginPrivate.h"
+#include "GCThread.h"
+#include "GCTDecl.h"
 
 extern StgWeak *old_weak_ptr_list;
 extern StgTSO *resurrected_threads;
 extern StgTSO *exception_threads;
 
 void    initWeakForGC          ( void );
-rtsBool traverseWeakPtrList    ( void );
-void    markWeakPtrList        ( void );
+rtsBool traverseWeakPtrList    ( DECLARE_GCT_ONLY_PARAM );
+void    markWeakPtrList        ( DECLARE_GCT_ONLY_PARAM );
 
 #include "EndPrivate.h"
 

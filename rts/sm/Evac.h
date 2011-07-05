@@ -28,12 +28,22 @@
 //         their arguments on the stack.
 #if __GNUC__ >= 2 && (defined(x86_64_HOST_ARCH) || defined(i386_HOST_ARCH))
 #define REGPARM1 __attribute__((regparm(1)))
+#define REGPARM2 __attribute__((regparm(2)))
 #else
 #define REGPARM1
+#define REGPARM2
 #endif
 
+#include "GCThread.h"
+#include "GCTDecl.h"
+
+#ifdef PASS_GCT_AS_PARAM
+REGPARM2 void evacuate  (gc_thread* gct, StgClosure **p);
+REGPARM2 void evacuate1 (gc_thread* gct, StgClosure **p);
+#else
 REGPARM1 void evacuate  (StgClosure **p);
 REGPARM1 void evacuate1 (StgClosure **p);
+#endif
 
 extern lnat thunk_selector_depth;
 

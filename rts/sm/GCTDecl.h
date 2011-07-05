@@ -21,16 +21,11 @@
    register then use gcc's __thread extension to create a thread-local
    variable.
    -------------------------------------------------------------------------- */
-
 #if defined(THREADED_RTS)
 
 #define GLOBAL_REG_DECL(type,name,reg) register type name REG(reg);
 
-#ifdef llvm_CC_FLAVOR
-#define SET_GCT(to) (pthread_setspecific(gctKey, to))
-#else
 #define SET_GCT(to) gct = (to)
-#endif
 
 
 
@@ -40,8 +35,8 @@
 // about 5% in GC performance, but of course that might change as gcc
 // improves. -- SDM 2009/04/03
 //
-// For MacOSX, we can use an llvm-based C compiler which will store the gct
-// in a thread local variable using pthreads.
+// For MacOSX, we can use an llvm-based C compiler which will pass gct
+// as a parameter to the GC functions
 
 extern __thread gc_thread* gct;
 #define DECLARE_GCT __thread gc_thread* gct;
@@ -50,9 +45,8 @@ extern __thread gc_thread* gct;
 // LLVM does not support the __thread extension and will generate
 // incorrect code for global register variables. If we are compiling
 // with a C compiler that uses an LLVM back end (clang or llvm-gcc) then we
-// use pthread_getspecific() to handle the thread local storage for gct.
-#define gct ((gc_thread *)(pthread_getspecific(gctKey)))
-#define DECLARE_GCT /* nothing */
+// pass the gct variable as a parameter to all the functions that need it
+#define PASS_GCT_AS_PARAM 1
 
 #elif defined(sparc_HOST_ARCH)
 // On SPARC we can't pin gct to a register. Names like %l1 are just offsets
@@ -103,6 +97,26 @@ extern StgWord8 the_gc_thread[];
 #define DECLARE_GCT /*nothing*/
 
 #endif // THREADED_RTS
+
+// Definitions for passing the GCT variable as a parameter to the GC functions
+#if defined(PASS_GCT_AS_PARAM)
+#define DECLARE_GCT /* nothing */
+#undef gct
+
+// for function declarations
+#define DECLARE_GCT_PARAM(...) gc_thread *gct, __VA_ARGS__
+#define DECLARE_GCT_ONLY_PARAM gc_thread *gct
+// for function calls
+#define GCT_PARAM(...) gct, __VA_ARGS__
+#define GCT_ONLY_PARAM gct
+#else
+// for function declarations
+#define DECLARE_GCT_PARAM(...) __VA_ARGS__
+#define DECLARE_GCT_ONLY_PARAM void
+// for function calls
+#define GCT_PARAM(...) __VA_ARGS__
+#define GCT_ONLY_PARAM /* nothing */
+#endif
 
 #include "EndPrivate.h"
 

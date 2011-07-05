@@ -144,12 +144,12 @@ static void init_gc_thread          (gc_thread *t);
 static void resize_generations      (void);
 static void resize_nursery          (void);
 static void start_gc_threads        (void);
-static void scavenge_until_all_done (void);
+static void scavenge_until_all_done (DECLARE_GCT_ONLY_PARAM);
 static StgWord inc_running          (void);
 static StgWord dec_running          (void);
 static void wakeup_gc_threads       (nat me);
 static void shutdown_gc_threads     (nat me);
-static void collect_gct_blocks      (void);
+static void collect_gct_blocks      (DECLARE_GCT_ONLY_PARAM);
 
 #if 0 && defined(DEBUG)
 static void gcCAFs                  (void);
@@ -180,6 +180,9 @@ GarbageCollect (rtsBool force_major_gc,
   lnat live_blocks, live_words, allocated, max_copied, avg_copied;
 #if defined(THREADED_RTS)
   gc_thread *saved_gct;
+#if defined(PASS_GCT_AS_PARAM)
+  gc_thread *gct;
+#endif
 #endif
   nat g, n;
 
@@ -329,13 +332,13 @@ GarbageCollect (rtsBool force_major_gc,
   if (n_gc_threads == 1) {
       for (n = 0; n < n_capabilities; n++) {
 #if defined(THREADED_RTS)
-          scavenge_capability_mut_Lists1(&capabilities[n]);
+          scavenge_capability_mut_Lists1(GCT_PARAM((&capabilities[n])));
 #else
           scavenge_capability_mut_lists(&capabilities[n]);
 #endif
       }
   } else {
-      scavenge_capability_mut_lists(gct->cap);
+      scavenge_capability_mut_lists(GCT_PARAM(gct->cap));
   }
 
   // follow roots from the CAF list (used by GHCi)
@@ -361,7 +364,7 @@ GarbageCollect (rtsBool force_major_gc,
 #endif
 
   // Mark the weak pointer list, and prepare to detect dead weak pointers.
-  markWeakPtrList();
+  markWeakPtrList(GCT_ONLY_PARAM);
   initWeakForGC();
 
   // Mark the stable pointer table.
@@ -373,13 +376,13 @@ GarbageCollect (rtsBool force_major_gc,
    */
   for (;;)
   {
-      scavenge_until_all_done();
+      scavenge_until_all_done(GCT_ONLY_PARAM);
       // The other threads are now stopped.  We might recurse back to
       // here, but from now on this is the only thread.
       
       // must be last...  invariant is that everything is fully
       // scavenged at this point.
-      if (traverseWeakPtrList()) { // returns rtsTrue if evaced something 
+      if (traverseWeakPtrList(GCT_ONLY_PARAM)) { // returns rtsTrue if evaced something
 	  inc_running();
 	  continue;
       }
@@ -923,7 +926,7 @@ dec_running (void)
 }
 
 static rtsBool
-any_work (void)
+any_work (DECLARE_GCT_ONLY_PARAM)
 {
     int g;
     gen_workspace *ws;
@@ -970,7 +973,7 @@ any_work (void)
 }    
 
 static void
-scavenge_until_all_done (void)
+scavenge_until_all_done (DECLARE_GCT_ONLY_PARAM)
 {
     DEBUG_ONLY( nat r );
 	
@@ -978,15 +981,15 @@ scavenge_until_all_done (void)
 loop:
 #if defined(THREADED_RTS)
     if (n_gc_threads > 1) {
-        scavenge_loop();
+        scavenge_loop(GCT_ONLY_PARAM);
     } else {
-        scavenge_loop1();
+        scavenge_loop1(GCT_ONLY_PARAM);
     }
 #else
     scavenge_loop();
 #endif
 
-    collect_gct_blocks();
+    collect_gct_blocks(GCT_ONLY_PARAM);
 
     // scavenge_loop() only exits when there's no work to do
 
@@ -1002,7 +1005,7 @@ loop:
     
     while (gc_running_threads != 0) {
         // usleep(1);
-        if (any_work()) {
+        if (any_work(GCT_ONLY_PARAM)) {
             inc_running();
             traceEventGcWork(gct->cap);
             goto loop;
@@ -1022,6 +1025,9 @@ void
 gcWorkerThread (Capability *cap)
 {
     gc_thread *saved_gct;
+#if defined(PASS_GCT_AS_PARAM)
+    gc_thread *gct;
+#endif
 
     // necessary if we stole a callee-saves register for gct:
     saved_gct = gct;
@@ -1052,9 +1058,9 @@ gcWorkerThread (Capability *cap)
     // Every thread evacuates some roots.
     gct->evac_gen_no = 0;
     markCapability(mark_root, gct, cap, rtsTrue/*prune sparks*/);
-    scavenge_capability_mut_lists(cap);
+    scavenge_capability_mut_lists(GCT_PARAM(cap));
 
-    scavenge_until_all_done();
+    scavenge_until_all_done(GCT_ONLY_PARAM);
     
 #ifdef THREADED_RTS
     // Now that the whole heap is marked, we discard any sparks that
@@ -1350,7 +1356,7 @@ prepare_uncollected_gen (generation *gen)
    -------------------------------------------------------------------------- */
 
 static void
-collect_gct_blocks (void)
+collect_gct_blocks (DECLARE_GCT_ONLY_PARAM)
 {
     nat g;
     gen_workspace *ws;
@@ -1423,11 +1429,15 @@ mark_root(void *user USED_IF_THREADS, StgClosure **root)
     // incorrect.
 #if defined(THREADED_RTS)
     gc_thread *saved_gct;
+#if defined(PASS_GCT_AS_PARAM)
+    gc_thread *gct;
+#else
     saved_gct = gct;
+#endif
 #endif
     SET_GCT(user);
     
-    evacuate(root);
+    evacuate(GCT_PARAM(root));
     
     SET_GCT(saved_gct);
 }

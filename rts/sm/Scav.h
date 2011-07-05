@@ -16,14 +16,14 @@
 
 #include "BeginPrivate.h"
 
-void    scavenge_loop (void);
-void    scavenge_mutable_list (bdescr *bd, generation *gen);
-void    scavenge_capability_mut_lists (Capability *cap);
+void    scavenge_loop (DECLARE_GCT_ONLY_PARAM);
+void    scavenge_mutable_list (DECLARE_GCT_PARAM(bdescr *bd, generation *gen));
+void    scavenge_capability_mut_lists (DECLARE_GCT_PARAM(Capability *cap));
 
 #ifdef THREADED_RTS
-void    scavenge_loop1 (void);
-void    scavenge_mutable_list1 (bdescr *bd, generation *gen);
-void    scavenge_capability_mut_Lists1 (Capability *cap);
+void    scavenge_loop1 (DECLARE_GCT_ONLY_PARAM);
+void    scavenge_mutable_list1 (DECLARE_GCT_PARAM(bdescr *bd, generation *gen));
+void    scavenge_capability_mut_Lists1 (DECLARE_GCT_PARAM(Capability *cap));
 #endif
 
 #include "EndPrivate.h"

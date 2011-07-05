@@ -82,7 +82,7 @@ StgWeak *old_weak_ptr_list; // also pending finaliser list
 // List of threads found to be unreachable
 StgTSO *resurrected_threads;
 
-static void resurrectUnreachableThreads (generation *gen);
+static void resurrectUnreachableThreads (DECLARE_GCT_PARAM(generation *gen));
 static rtsBool tidyThreadList (generation *gen);
 
 void
@@ -95,7 +95,7 @@ initWeakForGC(void)
 }
 
 rtsBool 
-traverseWeakPtrList(void)
+traverseWeakPtrList(DECLARE_GCT_ONLY_PARAM)
 {
   StgWeak *w, **last_w, *next_w;
   StgClosure *new;
@@ -135,8 +135,8 @@ traverseWeakPtrList(void)
 	      if (new != NULL) {
 		  w->key = new;
 		  // evacuate the value and finalizer 
-		  evacuate(&w->value);
-		  evacuate(&w->finalizer);
+		  evacuate(GCT_PARAM(&w->value));
+		  evacuate(GCT_PARAM(&w->finalizer));
 		  // remove this weak ptr from the old_weak_ptr list 
 		  *last_w = w->link;
 		  // and put it on the new weak ptr list 
@@ -167,7 +167,7 @@ traverseWeakPtrList(void)
        */
       if (flag == rtsFalse) {
 	  for (w = old_weak_ptr_list; w; w = w->link) {
-	      evacuate(&w->finalizer);
+	      evacuate(GCT_PARAM(&w->finalizer));
 	  }
 
 	  // Next, move to the WeakThreads stage after fully
@@ -207,7 +207,7 @@ traverseWeakPtrList(void)
       {
           nat g;
           for (g = 0; g <= N; g++) {
-              resurrectUnreachableThreads(&generations[g]);
+              resurrectUnreachableThreads(GCT_PARAM(&generations[g]));
           }
       }
         
@@ -221,7 +221,7 @@ traverseWeakPtrList(void)
   }
 }
   
-  static void resurrectUnreachableThreads (generation *gen)
+  static void resurrectUnreachableThreads (DECLARE_GCT_PARAM(generation *gen))
 {
     StgTSO *t, *tmp, *next;
 
@@ -238,7 +238,7 @@ traverseWeakPtrList(void)
             continue;
         default:
             tmp = t;
-            evacuate((StgClosure **)&tmp);
+            evacuate(GCT_PARAM((StgClosure **)&tmp));
             tmp->global_link = resurrected_threads;
             resurrected_threads = tmp;
         }
@@ -301,7 +301,7 @@ static rtsBool tidyThreadList (generation *gen)
    -------------------------------------------------------------------------- */
 
 void
-markWeakPtrList ( void )
+markWeakPtrList ( DECLARE_GCT_ONLY_PARAM )
 {
   StgWeak *w, **last_w;
 
@@ -320,7 +320,7 @@ markWeakPtrList ( void )
       }
 #endif
 
-      evacuate((StgClosure **)last_w);
+      evacuate(GCT_PARAM((StgClosure **)last_w));
       w = *last_w;
       if (w->header.info == &stg_DEAD_WEAK_info) {
           last_w = &(((StgDeadWeak*)w)->link);
