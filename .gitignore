@@ -236,3 +236,6 @@ _darcs/
 
 
 /extra-gcc-opts
+
+# ghc-trace
+*.ll
