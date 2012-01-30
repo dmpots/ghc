@@ -12,6 +12,7 @@
 // An absolute time value in units of 10ms.
 typedef StgWord LowResTime;
 
-RTS_PRIVATE LowResTime getourtimeofday ( void );
+//RTS_PRIVATE LowResTime getourtimeofday ( void );
+LowResTime getourtimeofday ( void );
 
 #endif /* POSIX_SELECT_H */

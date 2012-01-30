@@ -11,7 +11,7 @@
 
 #include "Capability.h"
 
-#include "BeginPrivate.h"
+//#include "BeginPrivate.h"
 
 /* -----------------------------------------------------------------------------
    Initialisation / De-initialisation
@@ -116,6 +116,6 @@ void move_STACK  (StgStack *src, StgStack *dest);
 extern StgClosure * caf_list;
 extern StgClosure * revertible_caf_list;
 
-#include "EndPrivate.h"
+//#include "EndPrivate.h"
 
 #endif /* SM_STORAGE_H */

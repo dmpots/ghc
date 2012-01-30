@@ -14,7 +14,7 @@
 
 #ifndef CMINUSMINUS
 
-#include "BeginPrivate.h"
+//#include "BeginPrivate.h"
 
 void throwToSingleThreaded (Capability *cap,
 			    StgTSO *tso,
@@ -64,7 +64,7 @@ interruptible(StgTSO *t)
   }
 }
 
-#include "EndPrivate.h"
+//#include "EndPrivate.h"
 
 #endif /* CMINUSMINUS */
 

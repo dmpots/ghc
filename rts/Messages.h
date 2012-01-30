@@ -6,7 +6,7 @@
  *
  * --------------------------------------------------------------------------*/
 
-#include "BeginPrivate.h"
+//#include "BeginPrivate.h"
 
 nat messageBlackHole(Capability *cap, MessageBlackHole *msg);
 StgTSO * blackHoleOwner (StgClosure *bh);
@@ -27,4 +27,4 @@ doneWithMsgThrowTo (MessageThrowTo *m)
     LDV_RECORD_CREATE(m);
 }
 
-#include "EndPrivate.h"
+//#include "EndPrivate.h"
