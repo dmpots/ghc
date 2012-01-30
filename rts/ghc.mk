@@ -311,6 +311,17 @@ rts/RtsUtils_CC_OPTS += -DTargetVendor=\"$(TargetVendor_CPP)\"
 rts/RtsUtils_CC_OPTS += -DGhcUnregisterised=\"$(GhcUnregisterised)\"
 rts/RtsUtils_CC_OPTS += -DGhcEnableTablesNextToCode=\"$(GhcEnableTablesNextToCode)\"
 
+# Use the llvm backend to compile cmm files
+rts/Apply_HC_OPTS += -fllvm -keep-llvm-files
+rts/dist/build/AutoApply_HC_OPTS += -fllvm -keep-llvm-files
+rts/Exception_HC_OPTS += -fllvm -keep-llvm-files
+rts/HeapStackCheck_HC_OPTS += -fllvm -keep-llvm-files
+rts/PrimOps_HC_OPTS += -fllvm -keep-llvm-files
+rts/StgMiscClosures_HC_OPTS += -fllvm -keep-llvm-files
+rts/StgStartup_HC_OPTS += -fllvm -keep-llvm-files
+rts/StgStdThunks_HC_OPTS += -fllvm -keep-llvm-files
+rts/Updates_HC_OPTS += -fllvm -keep-llvm-files
+
 # Compile various performance-critical pieces *without* -fPIC -dynamic
 # even when building a shared library.  If we don't do this, then the
 # GC runs about 50% slower on x86 due to the overheads of PIC.  The
