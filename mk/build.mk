@@ -89,6 +89,7 @@ ifeq "$(BuildFlavour)" "llvm"
 
 GhcLibWays = v dyn
 GhcEnableTablesNextToCode=NO
+INTEGER_LIBRARY    = integer-simple
 SRC_HC_OPTS        = -H64m -O
 GhcStage1HcOpts    = -O  -fasm
 GhcStage2HcOpts    = -O2 -fllvm -keep-llvm-files
