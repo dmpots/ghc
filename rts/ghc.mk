@@ -322,6 +322,12 @@ rts/StgStartup_HC_OPTS += -fllvm -keep-llvm-files
 rts/StgStdThunks_HC_OPTS += -fllvm -keep-llvm-files
 rts/Updates_HC_OPTS += -fllvm -keep-llvm-files
 
+# Useful for getting the llvm definitions out of runtime C code
+#rts/sm/Storage_CC_OPTS += -emit-llvm
+#rts/ThreadPaused_CC_OPTS += -emit-llvm
+#rts/Threads_CC_OPTS += -emit-llvm
+#rts/sm/GC_CC_OPTS += -emit-llvm
+
 # Compile various performance-critical pieces *without* -fPIC -dynamic
 # even when building a shared library.  If we don't do this, then the
 # GC runs about 50% slower on x86 due to the overheads of PIC.  The
